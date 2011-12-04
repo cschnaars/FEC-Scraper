@@ -28,7 +28,7 @@ into a database in this directory. As with reviewdir, the script will use
 this directory only to look for files that previously have been downloaded.
 It will not alter files in this directory or save new files here.
 
-You'll find commented out code below to show you how to explicitly
+You'll find commented code below to show you how to explicitly
 download filings for a particular committee.
 """
 
@@ -44,8 +44,8 @@ processeddir = 'C:\\data\\Python\\FEC\\Processed\\'
 # previously have been downloaded.
 usedatabaseflag = 0
 
-# Import needed libraries
-import mechanize, cookielib, re, glob, os
+# Import libraries
+import re, urllib, glob, os
 
 # Create lists to hold committee and file IDs
 commidlist = []
@@ -63,7 +63,7 @@ if usedatabaseflag == 1:
     cursor = conn.cursor()
     sql = 'EXEC usp_GetCommitteeIDs'
 
-    # Excecute stored procedure and populate list with committee IDs
+    # Execute stored procedure and populate list with committee IDs
     sql = 'EXEC usp_GetCommitteeIDs'
     for row in cursor.execute(sql):
         commidlist += row
@@ -93,31 +93,18 @@ fileidlist.sort()
 print 'Initializing FEC scrape...'
 print 'Fetching data for ' + str(len(commidlist)) + ' committees.\n'
 
-# Prep browser
-br = mechanize.Browser()
-
-# Tell mechanize to ignore robots.txt
-br.set_handle_robots(False)
-
-# Add cookie capabilities if needed
-cj = cookielib.LWPCookieJar()
-br.set_cookiejar(cj)
-
-# Tell the target web server we're using Chrome browser
-br.addheaders = [('User-agent', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.1 (KHTML, like Gecko) Chrome/14.0.835.202 Safari/535.1')]
-
 # Set up a list to house all available file IDs
 filing_numbers = []
 
 # Set a regular expression to match six-digit numbers
 regex = re.compile(r'[0-9]{6}')
 
-# For each committee id, use Mechanize to open the page and read its HTML
+# For each committee id, open the page and read its HTML
 for x in commidlist:
     print 'Searching files for ' + x + '.'
     url = "http://query.nictusa.com/cgi-bin/dcdev/forms/" + x + "/"
-    br.open(url)
-    response = br.response().read()
+    html = urllib.urlopen(url)
+    response = html.read()
 
     # For each line in the HTML, look for "Form F3" and a six-digit number
     # and build a list
@@ -138,13 +125,12 @@ for x in filing_numbers:
 # File search completed
 print '\nFile search completed. Beginning download...\n'
 
-# For each retrieved filing number, use Mechanize to download and save the files.
+# For each retrieved filing number, download and save the files.
 for y in downloadlist:
     filename = y + ".fec"
     print 'Downloading ' + filename + '.'
     url2 = "http://query.nictusa.com/dcdev/posted/" + filename
-    br.retrieve(url2, savedir + filename)
+    urllib.urlretrieve(url2, savedir + filename)
 
 # Display completion message
 print 'File download complete!'
-

@@ -35,8 +35,6 @@ data into neat, delimited text files for easy import into your database.
 
 2 - Requirements
 ----------------
-To run FEC Scraper, you will need to install the mechanize module (http://wwwsearch.sourceforge.net/mechanize/download.html).
-
 If you want to enable functionality that integrates FEC Scraper with a database manager, you'll
 also need a library to connect to a database manager of your choice, if you don't
 use the SQLite functionality baked into Python. For example:
