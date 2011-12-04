@@ -42,10 +42,14 @@ processeddir = 'C:\\data\\Python\\FEC\\Processed\\'
 # Set it to 0 if the script should run independent of any database.
 # A database is used solely to look for committees and files that
 # previously have been downloaded.
-usedatabaseflag = 1
+usedatabaseflag = 0
 
 # Import needed libraries
-import mechanize, cookielib, re, pyodbc, glob, os
+import mechanize, cookielib, re, glob, os
+
+# Create lists to hold committee and file IDs
+commidlist = []
+fileidlist = []
 
 # Create database connection to fetch lists of committee IDs and file IDs already in the database
 # The code below works with SQL Server; see README for tips on connecting
@@ -53,27 +57,24 @@ import mechanize, cookielib, re, pyodbc, glob, os
 # You will need to add the name of your SERVER and the DATABASE
 # You also may need to specify a UID (user ID) and PWD (password)
 if usedatabaseflag == 1:
+    import pyodbc
     connstr = 'DRIVER={SQL Server};SERVER=;DATABASE=FEC;UID=;PWD=;'
     conn = pyodbc.connect(connstr)
     cursor = conn.cursor()
     sql = 'EXEC usp_GetCommitteeIDs'
 
-# Create lists to hold committee and file IDs
-commidlist = []
-fileidlist = []
+    # Excecute stored procedure and populate list with committee IDs
+    sql = 'EXEC usp_GetCommitteeIDs'
+    for row in cursor.execute(sql):
+        commidlist += row
 
-# Excecute stored procedure and populate list with committee IDs
-sql = 'EXEC usp_GetCommitteeIDs'
-for row in cursor.execute(sql):
-    commidlist += row
+    # Execute stored procedure and populate list with file IDs
+    sql = 'EXEC usp_GetFileIDs'
+    for row in cursor.execute(sql):
+        fileidlist += row
 
-# Excecute stored procedure and populate list with file IDs
-sql = 'EXEC usp_GetFileIDs'
-for row in cursor.execute(sql):
-    fileidlist += row
-
-# Close database connection
-conn.close()
+    # Close database connection
+    conn.close()
 
 # Add IDs for files in review directory
 for datafile in glob.glob(os.path.join(reviewdir, '*.fec')):
@@ -84,9 +85,9 @@ fileidlist.sort()
 
 # If you need to add committee IDs for candidates or PACs for which
 # you've never previously downloaded data, you can do that here like this:
-# commidlist.append('C00431445') # Obama for America
-# commidlist.append('C00500587') # RickPerry.org Inc.
-# commidlist.append('C00431171') # Romney for President Inc.                                                                        
+#commidlist.append('C00431445') # Obama for America
+#commidlist.append('C00500587') # RickPerry.org Inc.
+#commidlist.append('C00431171') # Romney for President Inc.
 
 # Begin scrape
 print 'Initializing FEC scrape...'
