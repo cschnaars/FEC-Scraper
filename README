@@ -36,7 +36,7 @@ data into neat, delimited text files for easy import into your database.
 2 - Requirements
 ----------------
 If you want to enable functionality that integrates FEC Scraper with a database manager, you'll
-also need a library to connect to a database manager of your choice, if you don't
+need a library to connect to a database manager of your choice, if you don't
 use the SQLite functionality baked into Python. For example:
  * pyodbc (SQL Server, http://code.google.com/p/pyodbc/downloads/list)
  * mySQLdb (mySQL, http://mysql-python.sourceforge.net)
@@ -83,7 +83,7 @@ for easier import into a database manager.)
 FEC Scraper does not download data for committees you don't specify. Additionally, it does
 not download data files for any form types other than Form 3.
 
-Additionally, FEC Scraper's use is solely to scrape the FEC site and download the data files.
+FEC Scraper's use is solely to scrape the FEC site and download the data files.
 The script does not do any data processing.
 
 
@@ -91,14 +91,14 @@ The script does not do any data processing.
 5 - How to incorporate a database with FEC Scraper
 ---------------------------------------------------
 Near the top of the script, in the User Variables section, you can set the usedatabaseflag
-variable to a value other than 1 if you don't want the script to integrate with a database.
+variable to 1 if you want the script to interact with a datatbase manager and 0 if you want
+the script to run independent of a database.
 
 As written, FEC Parser uses the pyodbc module (http://code.google.com/p/pyodbc/downloads/list)
 to communicate with a SQL Server database. If you want to use a different database manager, you
 should be able to modify the code pretty easily. Here are a few suggestions:
  * mySQL: MySQLdb module (http://mysql-python.sourceforge.net)
  * PostgreSQL: psycopg2 module (http://initd.org/psycopg/download/) 
- 
  
 For the default SQL Server code, you will need to input the server and the database (if you've named
 it something other than FEC). If necessary, you also can specify a username (UID) and password (PWD).
@@ -115,8 +115,8 @@ database manager.
 
 6 - How to specify committees that should be scraped
 ----------------------------------------------------
-Even if you link FEC Scraper to a database, you'll still need to explicitly tell
-the script to download files for committees that don't already exist in the database.
+Even if you link FEC Scraper to a database, you still will need to tell the script
+explicitly to download files for committees that don't already exist in the database.
 
 You'll find commented out examples of how to explicitly add a committee to the script.
 For example: commidlist.append('C00431445')
