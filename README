@@ -1,5 +1,5 @@
-FEC Scraper:
-------------
+FEC Scraper/FEC Parser:
+-----------------------
 By Christopher Schnaars and Anthony DeBarros, USA TODAY
 Developed with Python 2.7.2
 
@@ -7,134 +7,240 @@ Developed with Python 2.7.2
 
 Contents:
 ---------
-1 - What is FEC Scraper?
+1 - What's in the box?
 2 - Requirements
-3 - What does FEC Scraper do?
-4 - What doesn't FEC Scraper do?
-5 - How to incorporate a database with FEC Scraper
-6 - How to specify committees that should be scraped
-7 - Directories
+3 - Notes about FEC data
+4 - What is FEC Scraper?
+5 - What is FEC Parser?
+6 - What don't FEC Scraper and FEC Parser do?
+7 - How to incorporate a database manager
+8 - Directories
 
 
 
-1 - What is FEC Scraper?
-------------------------
-FEC Scraper is a Python script you can run to find and download campaign finance filings
-from the Federal Election Commission website for specified committees, including candidates
-for president and the House of Representatives as well as Super PACs and other organizations.
+1 - What's in the box?
+----------------------
+FEC Scraper and FEC Parser are separate Python scripts that work together to
+download and parse data from the Federal Election Commission (FEC) provided in
+ASCII-28 delimited format. Optionally, you can enable integration with a
+database manager (SQL Server by default) to help you import the data and
+maintain database integrity. The scripts can handle hundreds or even thousands
+of files at once. The end result is eight to 11 tab-delimited text files
+housing cleaned-up data ready for easy import into a database manager or
+spreadsheet program.
 
-The scraper is most powerful when you take advantage of its ability to interact with a database
-manager. The default behavior is for the script to retrieve a list of committees that already exist
-in the database as well as all files housed in the database, then go to the FEC website to look for
-and scrape new filings for those committees.
-
-The scraper can be used in conjunction with FEC Parser (coming soon) to convert all of the FEC's 
-data into neat, delimited text files for easy import into your database.
+On the github site, you'll find a file called FECScraper.sql, which contains
+all the scripts you need to create tables and all other necessary database
+objects. If you are using a database manager other than SQL Server, you can
+use the schema contained in FECScraper.sql to build tables on a different RDMS.
 
 
 
 2 - Requirements
 ----------------
-If you want to enable functionality that integrates FEC Scraper with a database manager, you'll
-need a library to connect to a database manager of your choice, if you don't
-use the SQLite functionality baked into Python. For example:
+If you want to enable functionality that integrates FEC Scraper and FEC Parser
+with a database manager, you'll need a library to connect to a database manager
+of your choice, if you don't use the SQLite functionality baked into Python.
+Examples:
  * pyodbc (SQL Server, http://code.google.com/p/pyodbc/downloads/list)
  * mySQLdb (mySQL, http://mysql-python.sourceforge.net)
  * psycopg2 (PostgreSQL, http://initd.org/psycopg/download/)
 
-
-
-3 - What does FEC Scraper do?
------------------------------
-Every candidate or organization that has to file reports with the FEC is assigned a committee ID
-number. You can specify the committee IDs FEC Scraper should use when looking for
-new reports. There are two ways to do this.
-
-First, you have the option to specify a database the script can interact with. When you
-do this, FEC Parser automatically will download all Form 3 filings for all committees in
-the database, minus any filings previously downloaded or imported into the database. (You can
-download FECParser.sql for all the scripts you need to create a SQL Server database with all
-the necessary tables and stored procedures. You also can use these scripts to develop
-a database for a different database manager, such as mySQL, PostgreSQL or Access.)
-
-Second, you can specify a list of committees that you want scraped directly in the script. Even if
-you are interacting with a database, you'll need to specify the IDs for any committees that never
-have been downloaded previously.
-
-FEC Parser only downloads versions of Form 3, including Forms 3A, 3N, 3PA,
-3PN, 3XA and 3XN. This covers monthly and quarterly reports filed by PACs and other
-political organizations as well as candidates for President and the House of Representatives
-(but not the Senate, where members still engage in the archaic process of filing their reports
-on paper to hide contributors and expenditures).
-
-Form 3 includes contributions, expenditures and loans, among other types of information, so it
-probably contains everything you need.
-
-As of this writing, the FEC offers data files in both comma and ASCII-28 delimited formats.
-Because of inherent problems with .csv files (namely, commas in the data itself), FEC Scraper
-uses the ASCII-28 delimited format. This ASCII code is obscure and unlikely to show up in your
-data. (The FEC Parser sister script will convert these files to standard tab-delimited files
-for easier import into a database manager.)
+Otherwise, the scripts just use standard libraries included with Python. These
+scripts were built in Python 2.7.2.
 
 
 
-4 - What doesn't FEC Scraper do?
---------------------------------
-FEC Scraper does not download data for committees you don't specify. Additionally, it does
-not download data files for any form types other than Form 3.
+3 - Notes about FEC data
+------------------------
+Every candidate or organization that has to file reports with the FEC is
+assigned a committee ID number. FEC Scraper will download all Form 3 filings
+for each committe you specify, including Forms 3A, 3N, 3PA, 3PN, 3XA and 3XN.
+FEC Parser will churn through the data housed in these files and output
+standardized, tab-delimited text files for easy import.
 
-FEC Scraper's use is solely to scrape the FEC site and download the data files.
-The script does not do any data processing.
+The Form 3 data files include monthly, quarterly and annual reports housing
+itemized contributions, expenditures and loans, among other types of
+information, so they probably contain everything you need. These reports are
+required by the FEC for all PACs and other political organizations as well
+as candidates for President and the House of Representatives (but not the
+Senate, where members still engage in the archaic process of filing their
+reports on paper to hide contributors and expenditures).
+
+As of this writing, the FEC offers data files in both comma and ASCII-28
+delimited formats. Because of inherent problems with .csv files (namely, commas
+in the data itself), FEC Scraper uses the ASCII-28 delimited format. This ASCII
+code is obscure and unlikely to show up in your data.
+
+Each data file contains two header rows. Among other information, these header
+rows specify the header version used by the data file. FEC Scraper downloads
+all Form 3 filings regardless of the header version, but FEC Parser supports
+only header versions 6.4, 7.0 and 8.0. Data files that utilize other header
+versions are moved to the Review directory and are not processed.
 
 
 
-5 - How to incorporate a database with FEC Scraper
+4 - What is FEC Scraper?
+------------------------
+FEC Scraper is a Python script you can run to find and download campaign
+finance filings from the Federal Election Commission website for specified
+committees, including candidates for president and the House of Representatives
+as well as Super PACs and other organizations.
+
+FEC Scraper is most powerful when you take advantage of its ability to interact
+with a database manager. When this functionality is enabled (by setting the
+usedatabaseflag variable to 1), the script will retrieve a list of committees
+that already exist in the database as well as all files housed in the database,
+then go to the FEC website to look for and scrape new filings for those
+committees. Reports already housed in the database will not be downloaded.
+
+You also can specify a "Processed" directory. FEC Parser will move files that
+have been parsed successfully to this directory, and FEC Scraper will look in
+this directory to determine whether a data file previously has been imported.
+This helps ensure that even if the script doesn't interact with a database
+manager, you can avoid importing the same file more than once as long as you
+don't delete the processed files.
+
+(Development note: In a future version, we could have FEC Parser create and
+modify a text file housing a list of all Image IDs that have been processed.)
+
+If you don't interact with a database or if you want to download reports for a
+committe that does not exist in the database, you must specify in the script
+which committees you want to scrape. Examples:
+#commidlist.append('C00431445') # Obama for America
+#commidlist.append('C00500587') # RickPerry.org Inc.
+#commidlist.append('C00431171') # Romney for President Inc.
+
+
+
+5 - What is FEC Parser?
+-----------------------
+FEC Parser is a Python script that converts ASCII-28 delimited data files from
+the FEC into standard tab-delimited text files that easily can be imported into
+any database manager or spreadsheet program.
+
+When you download a Form 3 filing from the FEC, the data file contains two
+header rows at the top of the file, followed by data housed on eight separate
+forms (Schedules A, B, C, C1, C2, D and E and a long-text form). This data is
+in no particular order, and each form has different numbers of columns, and
+different column headings, making import tricky. Additionally, the FEC
+routinely adds and removes columns.
+
+If FEC Parser finds a file that is not a Form 3 filing (see the "Notes about
+FEC data" section above), the file will be moved to a Review directory you
+specify. In some cases, FEC Parser will append to the filename a brief
+explanation of why the file was not parsed.
+
+FEC Parser will go through all files with an .fec extension in whatever
+directory you specify and output eight tab-delimited text files: one for each
+schedule form. FEC Parser can process hundreds or even thousands of files at
+once. Each data row will be prepended with the FEC's unique ID for that file
+(called the ImageID) to create parent-child relationships between a header and
+each data row.
+
+Any tabs contained in the data are converted to spaces during parsing.
+
+If you implement the functionality that allows FEC Parser to interact with a
+database manager, it will check to make sure each report has not previously
+been imported into the database. If not, it will load the header rows into
+parent tables.
+
+If database functionality is disabled (the default behavior), FEC Parser will
+create three additional text files for the F3, F3P and F3X headers.
+
+FEC Parser presently supports only header versions 6.4, 7.0 and 8.0. Data files
+that utilize other header versions are moved to the Review directory and are
+not processed.
+
+
+
+6 - What don't FEC Scraper and FEC Parser do?
+---------------------------------------------
+FEC Scraper downloads only Form 3 filings. (For more information about Form 3
+and other filings, see the "Notes about FEC data" section above.) All other
+filings are ignored.
+
+Additionally, FEC Scraper does not download data for committees you don't
+specify. For the script to download filings for a particular committee you must
+do one of two things:
+ * You must specify the committee directly in the code (commented-out examples
+of how to do this are included in the script).
+ * You must enable database integration (by setting usedatabaseflag to 1) AND
+you must have data for that committee in the database. (When database
+integration is enabled, FEC Scraper will get a list of existing committees from
+the database and automatically download all new filings for them.)
+
+If you have database integration enabled, FEC Parser will load the header rows
+from the data files into your database. Otherwise, the script does not load any
+data into your database. You must manually import the data files after the
+script runs.
+
+Additionally, FEC Parser handles only Form 3 filings, and those filings must
+have header version 6.4, 7.0 or 8.0. All other form types and all Form 3
+filings with other header versions are moved to the Review directory and are
+not processed.
+
+
+
+7 - How to incorporate a database with FEC Scraper
 ---------------------------------------------------
-Near the top of the script, in the User Variables section, you can set the usedatabaseflag
-variable to 1 if you want the script to interact with a datatbase manager and 0 if you want
-the script to run independent of a database.
+Near the top of the code for both FEC Scraper and FEC Parser, in the User
+Variables section, you can set the usedatabaseflag variable to 1 if you want
+the script to interact with a datatbase manager and 0 if you want the script to
+run independent of a database.
 
-As written, FEC Parser uses the pyodbc module (http://code.google.com/p/pyodbc/downloads/list)
-to communicate with a SQL Server database. If you want to use a different database manager, you
-should be able to modify the code pretty easily. Here are a few suggestions:
+Both scripts include code to import the pyodbc module
+(http://code.google.com/p/pyodbc/downloads/list) to integrate them with a SQL
+Server database. If you want to use a different database manager, you will need
+to modify the code to use a different library. Here are a few suggestions:
  * mySQL: MySQLdb module (http://mysql-python.sourceforge.net)
- * PostgreSQL: psycopg2 module (http://initd.org/psycopg/download/) 
+ * PostgreSQL: psycopg2 module (http://initd.org/psycopg/download/)
  
-For the default SQL Server code, you will need to input the server and the database (if you've named
-it something other than FEC). If necessary, you also can specify a username (UID) and password (PWD).
+For the default SQL Server code, you will need to specify the server and the
+name of the database (if you've named it something other than FEC) in the
+connection string. If necessary, you also can specify a username (UID) and
+password (PWD).
 
-When the script runs, it fires two stored procedures that create a list of Committee IDs
-and data files that already exist in the database. FEC Scraper uses these lists to determine
-what committees to scrape and what files do not need to be downloaded.
+When FEC Scraper runs with database integration enabled, it calls two stored
+procedures that create lists of Committee IDs and Image IDs that already exist
+in the database. FEC Scraper uses these lists to determine what committees to
+scrape and what files do not need to be downloaded. The script also will not
+download any files that already exist in the processed or review directory.
 
-The FECScraper.sql file contains all the SQL Server scripts you need to create the necessary
-tables and stored procedures. You can use this code to create similar objects for another
-database manager.
+When FEC Parser runs with databse integration enabled, it will check the
+database each time it processes a file to make sure that Image ID does not
+already exist in the database. The user will be alerted any time it finds a
+duplicate file, and that file will be omitted from the text files created
+by the script. Additionally, the header rows are loaded into the
+database for you.
+
+When database integration is disabled, FEC Parser will output the header rows
+to an additional three data files that you can import manually.
+
+The FECScraper.sql file contains all the SQL Server scripts you need to create
+the necessary tables, stored procedures and other database objects. You can use
+this code to create similar objects for other database managers.
 
 
 
-6 - How to specify committees that should be scraped
-----------------------------------------------------
-Even if you link FEC Scraper to a database, you still will need to tell the script
-explicitly to download files for committees that don't already exist in the database.
-
-You'll find commented out examples of how to explicitly add a committee to the script.
-For example: commidlist.append('C00431445')
-
-
-
-7 - Directories
+8 - Directories
 ---------------
-You can specify up to three directories for various files:
- * savedir: This is where scraped files will be saved.
- * reviewdir: This is a directory where you can house files that you have not
-imported into your database because the data requires cleanup before it
-can be successfully imported. This script uses this directory only to look
-for files that previously have been downloaded. No files in this directory
-will be altered, and no new files will be saved here.
- * processeddir: Similarly, you can put files you've already imported
-into a database in this directory. As with reviewdir, the script will use
-this directory only to look for files that previously have been downloaded.
-It will not alter files in this directory or save new files here.
-
+You can specify up to four directories for various files:
+ * savedir: This is where FEC Scraper saves files. FEC Parser will process all
+.fed files housed in this directory.
+ * reviewdir: FEC Scraper gets a list of files housed in this directory and
+uses this list to avoid downloading previously downloaded files.
+   FEC Parser moves all files that cannot be processed to this directory, such
+as files that are not Form 3 or use an unsupported header version. For data
+rows that are in a valid file but can't be parsed, FEC Parser writes those data
+rows to a single timestamped review file and saves that file here.
+   No files in this directory are altered by either script, though FEC Parser
+may append to the file name a brief description of why the file could not be
+parsed.
+ * processeddir: FEC Scraper gets a list of files housed in this directory and
+uses this list to avoid downloading previously downloaded files.
+   FEC Parser moves all valid, processed files from the save directory to this
+directory.
+ * outputdir: FEC Scraper does not use this directory. FEC Parser saves the
+time-stamped tab-delimited data files it creates in this directory.
 
