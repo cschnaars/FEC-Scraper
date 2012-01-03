@@ -498,14 +498,6 @@ try:
                 conn.commit()
                 conn.close()
 
-
-
-
-                # Old code start
-
-
-
-
                 # Alert user if file may have been previously imported
                 # and move to review directory
                 if fileid == -1:
@@ -515,12 +507,6 @@ try:
                     shutil.move(datafile, reviewdir + filename)
                     print '\n'
                     continue
-
-
-
-
-                # Old code end
-
 
             # Otherwise, database integration disabled;
             # Store ImageID as FileID
