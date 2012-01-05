@@ -80,6 +80,10 @@ if usedatabaseflag == 1:
 for datafile in glob.glob(os.path.join(reviewdir, '*.fec')):
     fileidlist.append(datafile.replace(reviewdir, '')[:6])
 
+# Add IDs for files in save directory
+for datafile in glob.glob(os.path.join(savedir, '*.fec')):
+    fileidlist.append(datafile.replace(savedir, '')[:6])
+
 # Sort the fileid list
 fileidlist.sort()
 

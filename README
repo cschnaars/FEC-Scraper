@@ -72,11 +72,24 @@ delimited formats. Because of inherent problems with .csv files (namely, commas
 in the data itself), FEC Scraper uses the ASCII-28 delimited format. This ASCII
 code is obscure and unlikely to show up in your data.
 
-Each data file contains two header rows. Among other information, these header
-rows specify the header version used by the data file. FEC Scraper downloads
-all Form 3 filings regardless of the header version, but FEC Parser supports
-only header versions 6.4, 7.0 and 8.0. Data files that utilize other header
-versions are moved to the Review directory and are not processed.
+Each data file contains two (and sometimes three) header rows. Among other
+information, these header rows specify the header version used by the data
+file. FEC Scraper downloads all Form 3 filings regardless of the header
+version, but FEC Parser supports only header versions 6.4, 7.0 and 8.0. Data
+files that utilize other header versions are moved to the Review directory and
+are not processed.
+
+Please note that as of this writing, if a data file contains a third header
+row, that row is ignored. A third header row occurs when data is included for
+Column C on 30G reports. You can see what that form looks like at:
+http://www.fec.gov/pdf/forms/fecfrm3post.pdf
+
+The script also does not yet handle Schedule H records, which sometimes occur
+on Form F3X. Support for this data will be added in an upcoming release. For
+what it's worth, processing all data for more than 250 PACs and all candidates
+for President and the House of Represenatives yielded just under 50 data rows,
+so this issue is minimal. All Schedule H data rows presently are saved to
+the Review file.
 
 
 
@@ -119,11 +132,11 @@ FEC Parser is a Python script that converts ASCII-28 delimited data files from
 the FEC into standard tab-delimited text files that easily can be imported into
 any database manager or spreadsheet program.
 
-When you download a Form 3 filing from the FEC, the data file contains two
-header rows at the top of the file, followed by data housed on eight separate
-forms (Schedules A, B, C, C1, C2, D and E and a long-text form). This data is
-in no particular order, and each form has different numbers of columns, and
-different column headings, making import tricky. Additionally, the FEC
+When you download a Form 3 filing from the FEC, the data file contains two or
+three header rows at the top of the file, followed by data housed on eight
+separate forms (Schedules A, B, C, C1, C2, D and E and a long-text form). This
+data is in no particular order, and each form has different numbers of columns,
+and different column headings, making import tricky. Additionally, the FEC
 routinely adds and removes columns.
 
 If FEC Parser finds a file that is not a Form 3 filing (see the "Notes about
@@ -151,6 +164,18 @@ create three additional text files for the F3, F3P and F3X headers.
 FEC Parser presently supports only header versions 6.4, 7.0 and 8.0. Data files
 that utilize other header versions are moved to the Review directory and are
 not processed.
+
+Please note that due to the inherent messiness of FEC data (particularly
+problems with missing or excess column delimiters, FEC Parser will add
+delimiters to data rows that do not have the correct number of columns and
+remove excess delimiters when there are too many. If FEC Parser finds data in
+any excess columns, that row is instead written to the review file so no data
+is lost.
+
+This could cause data to be written to the wrong column if excess or missing
+delimiters occur anywhere other than the end of a data row. I've tested the
+data extensively, however, and as of this writing, I have never found a problem
+other than at the end of a data row.
 
 
 
@@ -195,7 +220,7 @@ Server database. If you want to use a different database manager, you will need
 to modify the code to use a different library. Here are a few suggestions:
  * mySQL: MySQLdb module (http://mysql-python.sourceforge.net)
  * PostgreSQL: psycopg2 module (http://initd.org/psycopg/download/)
- 
+
 For the default SQL Server code, you will need to specify the server and the
 name of the database (if you've named it something other than FEC) in the
 connection string. If necessary, you also can specify a username (UID) and
@@ -205,7 +230,7 @@ When FEC Scraper runs with database integration enabled, it calls two stored
 procedures that create lists of Committee IDs and Image IDs that already exist
 in the database. FEC Scraper uses these lists to determine what committees to
 scrape and what files do not need to be downloaded. The script also will not
-download any files that already exist in the processed or review directory.
+download any files that already exist in the processed or review directories.
 
 When FEC Parser runs with databse integration enabled, it will check the
 database each time it processes a file to make sure that Image ID does not

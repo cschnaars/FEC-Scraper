@@ -10,9 +10,11 @@ by candidate committees, political action committees (PACs) and
 other organizations.
 
 If you enable the script's database functionality, header rows are added
-to Form F3 tables in a database mamager. Once added, the integer ID
-for the newly added row is returned to the Python script and prepended
-to child rows saved to the tab-delimited data files.
+to Form F3 tables in a database mamager.
+
+Regardless of whether you use database integration, the Image ID for
+each file (the unique ID assigned to each file by the FEC) is prepended
+to each data row.
 
 This script presently supports only header versions 6.4, 7.0 and 8.0.
 Files with unsupported headers are moved to the review directory.
@@ -24,8 +26,16 @@ For complete documentation, see the README file.
 """
 
 # User variables
+
+# Try to import your user settings or set them explicitly. The database
+# connection string will be ignored if database integration is disabled.
+try:
+    exec(open('usersettings.py').read())
+except:
+    maindir = 'C:\\data\\Python\\FEC\\'
+    connstr = 'DRIVER={SQL Server};SERVER=;DATABASE=FEC;UID=;PWD=;'
+
 # You can alter these to customize file locations
-maindir = 'C:\\data\\Python\\FECTest\\'
 sourcedir = maindir + 'Import\\'
 destdir = maindir + 'Processed\\'
 outputdir = maindir + 'Output\\'
@@ -66,7 +76,7 @@ try:
     review_file = open(reviewfile, 'w')
 
     # Create column headers
-    scheduleaheaderstring = 'ParentType\tParentID\tFormType\tCommID\tTransID\tBackRefTransID\tBackRefSchedName\t' \
+    scheduleaheaderstring = 'ParentType\tImageId\tFormType\tCommID\tTransID\tBackRefTransID\tBackRefSchedName\t' \
                    'EntityType\tContOrgName\tContLastName\tContFirstName\tContMidName\t' \
                    'ContPrefix\tContSuffix\tContAddress1\tContAddress2\tContCity\tContState\t' \
                    'ContZip\tElecCode\tElecOtherDesc\tstrContDate\tContAmount\tContAggregate\t' \
@@ -76,7 +86,7 @@ try:
                    'DonorCandOffice\tDonorCandState\tDonorCandDist\tConduitName\t' \
                    'ConduitAddress1\tConduitAddress2\tConduitCity\tConduitState\tConduitZip\t' \
                    'MemoCode\tMemoText\n'
-    schedulebheaderstring = 'ParentType\tParentID\tFormType\tFilerCommID\tTransID\tBackRefTransID\tBackRefSchedName\t' \
+    schedulebheaderstring = 'ParentType\tImageId\tFormType\tFilerCommID\tTransID\tBackRefTransID\tBackRefSchedName\t' \
                     'EntityType\tPayeeOrgName\tPayeeLastName\tPayeeFirstName\tPayeeMidName\t' \
                     'PayeePrefix\tPayeeSuffix\tPayeeAddress1\tPayeeAddress2\tPayeeCity\t' \
                     'PayeeState\tPayeeZip\tElecCode\tElecOtherDesc\tstrExpDate\tExpAmount\t' \
@@ -85,7 +95,7 @@ try:
                     'BenCandPrefix\tBenCandSuffix\tBenCandOffice\tBenCandState\tBenCandDist\t' \
                     'ConduitName\tConduitAddress1\tConduitAddress2\tConduitCity\tConduitState\t' \
                     'ConduitZip\tMemoCode\tMemoText\n'
-    schedulecheaderstring = 'ParentType\tParentID\tFormType\tFilerCommID\tTransID\tRectLineNbr\tEntityType\t' \
+    schedulecheaderstring = 'ParentType\tImageId\tFormType\tFilerCommID\tTransID\tRectLineNbr\tEntityType\t' \
                     'LenderOrgName\tLenderLastName\tLenderFirstName\tLenderMidName\t' \
                     'LenderPrefix\tLenderSuffix\tLenderAddress1\tLenderAddress2\t' \
                     'LenderCity\tLenterState\tLenderZip\tElecCod\tElecOtherDesc\t' \
@@ -94,7 +104,7 @@ try:
                     'LenderCommID\tLenderCandID\tLenderCandLastName\tLenderCandFirstName\t' \
                     'LenderCandMidName\tLenderCandPrefix\tLenderCandSuffix\tLenderCandOffice\t' \
                     'LenderCandState\tLenderCandDist\tMemoCode\tMemoText\n'
-    schedulec1headerstring = 'ParentType\tParentID\tFormType\tFilerCommID\tTransID\tBackRefTransID\t' \
+    schedulec1headerstring = 'ParentType\tImageId\tFormType\tFilerCommID\tTransID\tBackRefTransID\t' \
                     'LenderOrgName\tLenderAddress1\tLenderAddress2\tLenderCity\t' \
                     'LenderState\tLenderZip\tLoanAmt\tLoanIntRate\tstrLoanIncurredDate\t' \
                     'strLoanDueDate\tA1_LoanRestructuredFlag\tA2_strOrigLoanIncurredDate\t' \
@@ -108,16 +118,16 @@ try:
                     'G_strDateSigned\tH_AuthorizedLastName\tH_AuthorizedfirstName\t' \
                     'H_AuthorizedMidName\tH_AuthorizedPrefix\tH_AuthorizedSuffix\t' \
                     'H_AuthorizedTitle\tH_strDateSigned\n'
-    schedulec2headerstring = 'ParentType\tParentID\tFormType\tFilerCommID\tTransID\tBackRefTransID\t' \
+    schedulec2headerstring = 'ParentType\tImageId\tFormType\tFilerCommID\tTransID\tBackRefTransID\t' \
                     'GuarLastName\tGuarFirstName\tGuarMidName\tGuarPrefix\t' \
                     'GuarSuffix\tGuarAddress1\tGuarAddress2\tGuarCity\tGuarState\t' \
                     'GuarZip\tGuarEmployer\tGuarOccupation\tGuarAmt\n'
-    scheduledheaderstring = 'ParentType\tParentID\tFormType\tCommID\tTransID\tEntityType\tCredOrgName\t' \
+    scheduledheaderstring = 'ParentType\tImageId\tFormType\tCommID\tTransID\tEntityType\tCredOrgName\t' \
                     'CredLastName\tCredFirstName\tCredMidName\tCredPrefix\t' \
                     'CredSuffix\tCredAddress1\tCredAddress2\tCredCity\tCredState\t' \
                     'CredZip\tDebtPurpose\tBegBal_Prd\tIncurredAmt_Prd\tPaymtAmt_Prd\t' \
                     'BalanceAtClose_Prd\n'
-    scheduleeheaderstring = 'ParentType\tParentID\tFormType\tFilerCommID\tTransID\tBackRefTransID\t' \
+    scheduleeheaderstring = 'ParentType\tImageId\tFormType\tFilerCommID\tTransID\tBackRefTransID\t' \
                     'BackRefSchedName\tEntityType\tPayeeOrgName\tPayeeLastName\t' \
                     'PayeeFirstName\tPayeeMidName\tPayeePrefix\tPayeeSuffix\t' \
                     'PayeeAddress1\tPayeeAddress2\tPayeeCity\tPayeeState\tPayeeZip\t' \
@@ -128,7 +138,7 @@ try:
                     'SuppOppCandOffice\tSuppOppCandState\tSuppOppCandDist\t' \
                     'CompLastName\tCompFirstName\tCompMidName\tCompPrefix\tCompSuffix\t' \
                     'strDateSigned\tMemoCode\tMemoText\n'
-    textheaderstring = 'ParentType\tParentID\tRecType\tCommID\tTransID\tBackRefTransID\tBackRefFormName\tFullText\n'
+    textheaderstring = 'ParentType\tImageId\tRecType\tCommID\tTransID\tBackRefTransID\tBackRefFormName\tFullText\n'
 
     # Write headers to output files
     sched_a_file.write(scheduleaheaderstring)
@@ -267,7 +277,7 @@ try:
             'AllocWestVirginia_Tot\tAllocWisconsin_Tot\tAllocWyoming_Tot\t' \
             'AllocPuertoRico_Tot\tAllocGuam_Tot\tAllocVirginIslands_Tot\t' \
             'AllocStatesTotal_Tot\n'
-        formf3xheaderstring = 'ImageID\tActive\tFormType\tCommID\t' \
+        formf3xheaderstring = 'ImageID\tFormType\tCommID\t' \
             'CommName\tAddressChange\tCommAddress1\tCommAddress2\t' \
             'CommCity\tCommState\tCommZip\tReptCode\tElecCode\t' \
             'strElecDate\tElecState\tstrFromDate\tstrToDate\t' \
@@ -343,8 +353,6 @@ try:
         form_f3p_file.write(formf3pheaderstring)
         form_f3x_file.write(formf3xheaderstring)
 
-    
-
     # Iterate through all files in the source directory
     # and process those with .fec extension
     try:
@@ -364,7 +372,7 @@ try:
             # Check header version
             # Presently, only 6.4, 7.0 and 8.0 are supported
             if hdr1list[0].strip('"') == 'HDR':
-                headerversion = hdr1list[2].strip('"')
+                headerversion = hdr1list[2].strip('"').strip()
             else:
                 shutil.move(datafile, reviewdir + filename.replace('.fec','_INV_HDR.fec'))
                 continue
@@ -409,7 +417,7 @@ try:
             # Generic cleanup of header lines
             
             # Change all tabs and newlines to spaces
-            lineclean = hdr2.replace('\t',' ').replace('\n',' ')
+            lineclean = hdr2.replace('\t',' ').replace('\r',' ').replace('\n',' ')
             # Remove leading and trailing whitespace
             lineclean = lineclean.strip()
             # Remove all instances of two spaces
@@ -487,7 +495,6 @@ try:
                 sql += ' ' + lineclean + '\n'
 
                 # Create SQL Server connection
-                connstr = 'DRIVER={SQL Server};SERVER=;DATABASE=FEC;UID=;PWD=;'
                 conn = pyodbc.connect(connstr)
                 cursor = conn.cursor()
 
@@ -514,15 +521,76 @@ try:
             else:
 
                 # Write header to appropriate file
+                if lineclean.startswith("'"):
+                    lineclean = lineclean[1:]
+                if lineclean.endswith("'"):
+                    lineclean = lineclean[:-1]
                 lineclean += '\n'
+                lineclean = lineclean.replace("'\t","\t").replace("\t'","\t")
+                colct = len(lineclean.split('\t'))
                 if formtype == 'F3A' or formtype == 'F3N':
-                    form_f3_file.write(lineclean)
+                    while colct < 94:
+                        lineclean = lineclean.replace('\n', '\t\n')
+                        colct = len(lineclean.split('\t'))
+                    while colct > 94 and lineclean.endswith('\t\n'):
+                        lineclean = lineclean[:-2] + '\n'
+                        colct = len(lineclean.split('\t'))
+                    if colct == 94:
+                        form_f3_file.write(lineclean)
+                    else:
+                        print 'The header row for ' + filename + ' does not have ' \
+                              'the correct number of columns. This file will be ' \
+                              'moved to the review directory and will not ' \
+                              'be imported.\n'
+                        raw_input('Press Enter to continue...')
+                        shutil.move(datafile, reviewdir + filename)
+                        print '\n'
+                        continue
                 elif formtype == 'F3PA' or formtype == 'F3PN':
-                    form_f3p_file.write(lineclean)
+                    while colct < 207:
+                        lineclean = lineclean.replace('\n', '\t\n')
+                        colct = len(lineclean.split('\t'))
+                    while colct > 207 and lineclean.endswith('\t\n'):
+                        lineclean = lineclean[:-2] + '\n'
+                        colct = len(lineclean.split('\t'))
+                    if colct == 207:
+                        form_f3p_file.write(lineclean)
+                    else:
+                        print 'The header row for ' + filename + ' does not have ' \
+                              'the correct number of columns. This file will be ' \
+                              'moved to the review directory and will not ' \
+                              'be imported.\n'
+                        raw_input('Press Enter to continue...')
+                        shutil.move(datafile, reviewdir + filename)
+                        print '\n'
+                        continue
                 elif formtype == 'F3XA' or formtype == 'F3XN':
-                    form_f3x_file.write(lineclean)
+                    while colct < 124:
+                        lineclean = lineclean.replace('\n', '\t\n')
+                        colct = len(lineclean.split('\t'))
+                    while colct > 124 and lineclean.endswith('\t\n'):
+                        lineclean = lineclean[:-2] + '\n'
+                        colct = len(lineclean.split('\t'))
+                    if colct == 124:
+                        form_f3x_file.write(lineclean)
+                    else:
+                        print 'The header row for ' + filename + ' does not have ' \
+                              'the correct number of columns. This file will be ' \
+                              'moved to the review directory and will not ' \
+                              'be imported.\n'
+                        raw_input('Press Enter to continue...')
+                        shutil.move(datafile, reviewdir + filename)
+                        print '\n'
+                        continue
                 else:
-                    print lineclean
+                        print 'An unexpected error occurred while processing the ' \
+                              'header for ' + filename + '. This file has been ' \
+                              'moved to the review directory and will not ' \
+                              'be imported.\n'
+                        raw_input('Press Enter to continue...')
+                        shutil.move(datafile, reviewdir + filename)
+                        print '\n'
+                        continue
 
             # At this point, we have a valid header for a new file
             # Copy each subsequent line to the appropriate output file.
@@ -579,7 +647,7 @@ try:
                 # Clean up the line
                 # Change all tabs and newlines to spaces,
                 # and strip leading/trailing whitespace
-                datarow = datarow.replace('\t',' ').replace('\n',' ').strip()
+                datarow = datarow.replace('\t',' ').replace('\r',' ').replace('\n',' ').strip()
 
                 # Remove leading and trailing whitespace
                 # datarow = datarow.strip()
@@ -605,7 +673,8 @@ try:
                 while datarow.find(delimiter + "'") <> -1:
                     datarow = datarow.replace(delimiter + "'", delimiter)
                 # Replace '' between two delimiters with just two delimiters
-                datarow = datarow.replace(delimiter + "''" + delimiter, delimiter + delimiter)                # Replace all cases of '' with "
+                datarow = datarow.replace(delimiter + "''" + delimiter, delimiter + delimiter)
+				# Replace all cases of '' with "
                 while datarow.find("''") <> -1:
                     datarow = datarow.replace("''", '"')
                 # Replace all cases of "" with "
@@ -616,23 +685,96 @@ try:
  
                 # Now write the data row to the appropriate file
                 rowtype = cols[0].strip('"')
+                colct = len(datarow.split('\t'))
                 
                 if rowtype.startswith('SA'):
-                    sched_a_file.write(datarow)
+                    while colct < 47:
+                        datarow = datarow.replace('\n', '\t\n')
+                        colct = len(datarow.split('\t'))
+                    while colct > 47 and datarow.endswith('\t\n'):
+                        datarow = datarow[:-2] + '\n'
+                        colct = len(datarow.split('\t'))
+                    if colct == 47:
+                        sched_a_file.write(datarow)
+                    else:
+                        review_file.write(datarow)
                 elif rowtype.startswith('SB'):
-                    sched_b_file.write(datarow)
+                    while colct < 46:
+                        datarow = datarow.replace('\n', '\t\n')
+                        colct = len(datarow.split('\t'))
+                    while colct > 46 and datarow.endswith('\t\n'):
+                        datarow = datarow[:-2] + '\n'
+                        colct = len(datarow.split('\t'))
+                    if colct == 46:
+                        sched_b_file.write(datarow)
+                    else:
+                        review_file.write(datarow)
                 elif rowtype.startswith('SC/'):
-                    sched_c_file.write(datarow)
+                    while colct < 40:
+                        datarow = datarow.replace('\n', '\t\n')
+                        colct = len(datarow.split('\t'))
+                    while colct > 40 and datarow.endswith('\t\n'):
+                        datarow = datarow[:-2] + '\n'
+                        colct = len(datarow.split('\t'))
+                    if colct == 40:
+                        sched_c_file.write(datarow)
+                    else:
+                        review_file.write(datarow)
                 elif rowtype.startswith('SC1/'):
-                    sched_c1_file.write(datarow)
+                    while colct < 50:
+                        datarow = datarow.replace('\n', '\t\n')
+                        colct = len(datarow.split('\t'))
+                    while colct > 50 and datarow.endswith('\t\n'):
+                        datarow = datarow[:-2] + '\n'
+                        colct = len(datarow.split('\t'))
+                    if colct == 50:
+                        sched_c1_file.write(datarow)
+                    else:
+                        review_file.write(datarow)
                 elif rowtype.startswith('SC2/'):
-                    sched_c2_file.write(datarow)
+                    while colct < 19:
+                        datarow = datarow.replace('\n', '\t\n')
+                        colct = len(datarow.split('\t'))
+                    while colct > 19 and datarow.endswith('\t\n'):
+                        datarow = datarow[:-2] + '\n'
+                        colct = len(datarow.split('\t'))
+                    if colct == 19:
+                        sched_c2_file.write(datarow)
+                    else:
+                        review_file.write(datarow)
                 elif rowtype.startswith('SD'):
-                    sched_d_file.write(datarow)
+                    while colct < 22:
+                        datarow = datarow.replace('\n', '\t\n')
+                        colct = len(datarow.split('\t'))
+                    while colct > 22 and datarow.endswith('\t\n'):
+                        datarow = datarow[:-2] + '\n'
+                        colct = len(datarow.split('\t'))
+                    if colct == 22:
+                        sched_d_file.write(datarow)
+                    else:
+                        review_file.write(datarow)
                 elif rowtype.startswith('SE'):
-                    sched_e_file.write(datarow)
+                    while colct < 46:
+                        datarow = datarow.replace('\n', '\t\n')
+                        colct = len(datarow.split('\t'))
+                    while colct > 46 and datarow.endswith('\t\n'):
+                        datarow = datarow[:-2] + '\n'
+                        colct = len(datarow.split('\t'))
+                    if colct == 46:
+                        sched_e_file.write(datarow)
+                    else:
+                        review_file.write(datarow)
                 elif rowtype.startswith('TEXT'):
-                    text_file.write(datarow)
+                    while colct < 8:
+                        datarow = datarow.replace('\n', '\t\n')
+                        colct = len(datarow.split('\t'))
+                    while colct > 8 and datarow.endswith('\t\n'):
+                        datarow = datarow[:-2] + '\n'
+                        colct = len(datarow.split('\t'))
+                    if colct == 8:
+                        text_file.write(datarow)
+                    else:
+                        review_file.write(datarow)
                 else:
                     review_file.write(datarow)
 
