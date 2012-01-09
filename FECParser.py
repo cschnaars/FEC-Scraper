@@ -452,7 +452,7 @@ try:
             # Change all instances of ' to ''
             lineclean = lineclean.replace("'", "''")
             # Insert NULL between delimiters
-            while delimiter + delimter in lineclean:
+            while delimiter + delimiter in lineclean:
                 lineclean = lineclean.replace(delimiter + delimiter, delimiter + 'NULL' + delimiter)
             # Add image id
             lineclean = "'" + imageid + delimiter + lineclean
