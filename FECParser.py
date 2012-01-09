@@ -417,42 +417,42 @@ try:
             # Generic cleanup of header lines
             
             # Change all tabs and newlines to spaces
-            lineclean = hdr2.replace('\t',' ').replace('\r',' ').replace('\n',' ')
+            lineclean = hdr2.expandtabs(1).replace('\r',' ').replace('\n',' ')
             # Remove leading and trailing whitespace
             lineclean = lineclean.strip()
             # Remove all instances of two spaces
-            while lineclean.find('  ') <> -1:
+            while '  ' in lineclean:
                 lineclean = lineclean.replace('  ',' ')
             # Remove spaces immediately before or after a delimiter
-            while lineclean.find(' ' + delimiter) <> -1:
+            while ' ' + delimiter in lineclean:
                 lineclean = lineclean.replace(' ' + delimiter, delimiter)
-            while lineclean.find(delimiter + ' ') <> -1:
+            while delimiter + ' ' in lineclean:
                 lineclean = lineclean.replace(delimiter + ' ', delimiter)
             # Remove leading and trailing quotation marks
             while lineclean.startswith('"') or lineclean.endswith('"') or lineclean.startswith("'") or lineclean.endswith("'"):
                 lineclean = lineclean.strip().strip('"').strip("'").strip()
             # Remove double quotation marks when immediately before or after a delimiter.
-            while lineclean.find('"' + delimiter) <> -1:
+            while '"' + delimiter in lineclean:
                 lineclean = lineclean.replace('"' + delimiter, delimiter)
-            while lineclean.find(delimiter + '"') <> -1:
+            while delimiter + '"' in lineclean:
                 lineclean = lineclean.replace(delimiter + '"', delimiter)
             # Remove single quotation marks when immediately before or after a delimiter.
-            while lineclean.find("'" + delimiter) <> -1:
+            while "'" + delimiter in lineclean:
                 lineclean = lineclean.replace("'" + delimiter, delimiter)
-            while lineclean.find(delimiter + "'") <> -1:
+            while delimiter + "'" in lineclean:
                 lineclean = lineclean.replace(delimiter + "'", delimiter)
             # Replace '' between two delimiters with just two delimiters
             lineclean = lineclean.replace(delimiter + "''" + delimiter, delimiter + delimiter)
             # Replace all cases of '' with "
-            while lineclean.find("''") <> -1:
+            while "''" in lineclean:
                 lineclean = lineclean.replace("''", '"')
             # Replace all cases of "" with "
-            while lineclean.find('""') <> -1:
+            while '""' in lineclean:
                 lineclean = lineclean.replace('""', '"')
             # Change all instances of ' to ''
             lineclean = lineclean.replace("'", "''")
             # Insert NULL between delimiters
-            while lineclean.find(delimiter + delimiter) <> -1:
+            while delimiter + delimter in lineclean:
                 lineclean = lineclean.replace(delimiter + delimiter, delimiter + 'NULL' + delimiter)
             # Add image id
             lineclean = "'" + imageid + delimiter + lineclean
@@ -597,7 +597,7 @@ try:
             for line in open(datafile, 'rb'):
 
                 # If the row is just white space, skip it
-                if line.replace('/n','').replace('/t','').replace(' ','').replace('"','').replace("'",'').replace(delimiter,'').strip() == '':
+                if line.replace('/n','').expandtabs(1).replace(' ','').replace('"','').replace("'",'').replace(delimiter,'').strip() == '':
                     continue
 
                 # Skip this row if it's a header line
@@ -652,33 +652,33 @@ try:
                 # Remove leading and trailing whitespace
                 # datarow = datarow.strip()
                 # Remove all instances of two spaces
-                while datarow.find('  ') <> -1:
+                while '  ' in datarow:
                     datarow = datarow.replace('  ',' ')
                 # Remove spaces immediately before or after a delimiter
-                while datarow.find(' ' + delimiter) <> -1:
+                while ' ' + delimiter in datarow:
                     datarow = datarow.replace(' ' + delimiter, delimiter)
-                while datarow.find(delimiter + ' ') <> -1:
+                while delimiter + ' ' in datarow:
                     datarow = datarow.replace(delimiter + ' ', delimiter)
                 # Remove leading and trailing quotation marks
                 while datarow.startswith('"') or datarow.endswith('"') or datarow.startswith("'") or datarow.endswith("'"):
                     datarow = datarow.strip().strip('"').strip("'").strip()
                 # Remove double quotation marks when immediately before or after a delimiter.
-                while datarow.find('"' + delimiter) <> -1:
+                while '"' + delimiter in datarow:
                     datarow = datarow.replace('"' + delimiter, delimiter)
-                while datarow.find(delimiter + '"') <> -1:
+                while delimiter + '"' in datarow:
                     datarow = datarow.replace(delimiter + '"', delimiter)
                 # Remove single quotation marks when immediately before or after a delimiter.
-                while datarow.find("'" + delimiter) <> -1:
+                while "'" + delimiter in datarow:
                     datarow = datarow.replace("'" + delimiter, delimiter)
-                while datarow.find(delimiter + "'") <> -1:
+                while delimiter + "'" in datarow:
                     datarow = datarow.replace(delimiter + "'", delimiter)
                 # Replace '' between two delimiters with just two delimiters
                 datarow = datarow.replace(delimiter + "''" + delimiter, delimiter + delimiter)
 				# Replace all cases of '' with "
-                while datarow.find("''") <> -1:
+                while "''" in datarow:
                     datarow = datarow.replace("''", '"')
                 # Replace all cases of "" with "
-                while datarow.find('""') <> -1:
+                while '""' in datarow:
                     datarow = datarow.replace('""', '"')
                 # Replace all delimiters with tabs and add newline
                 datarow = datarow.replace(delimiter, '\t') + '\n'
