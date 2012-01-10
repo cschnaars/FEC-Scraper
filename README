@@ -119,10 +119,22 @@ modify a text file housing a list of all Image IDs that have been processed.)
 
 If you don't interact with a database or if you want to download reports for a
 committe that does not exist in the database, you must specify in the script
-which committees you want to scrape. Examples:
-#commidlist.append('C00431445') # Obama for America
-#commidlist.append('C00500587') # RickPerry.org Inc.
-#commidlist.append('C00431171') # Romney for President Inc.
+which committees you want to scrape. This is handled in a Try block near line
+100 of the code. There are two ways to specify committees:
+
+First, the code will look for a text file called commidappend.txt. You can
+specify a list of committees (one per line) in the file. Don't use commas
+or any other separator, and make sure the committe IDs begin with a capital C.
+The file should look something like this:
+C00431445
+C00500587
+C00431171
+
+Additionally, you can write code in the Finally block to append the commidlist
+list directly. Examples:
+commidlist.append('C00431445') # Obama for America
+commidlist.append('C00500587') # RickPerry.org Inc.
+commidlist.append('C00431171') # Romney for President Inc.
 
 
 
