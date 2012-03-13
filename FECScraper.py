@@ -51,7 +51,7 @@ processeddir = maindir + 'Processed\\'
 # Set it to 0 if the script should run independent of any database.
 # A database is used solely to look for committees and files that
 # previously have been downloaded.
-usedatabaseflag = 0
+usedatabaseflag = 1
 
 # Import libraries
 import re, urllib, glob, os
@@ -60,6 +60,9 @@ import re, urllib, glob, os
 commidlist = []
 fileidlist = []
 
+# Display start message
+print 'Compiling lists of FEC committees and previously downloaded files...'
+
 # Create database connection to fetch lists of committee IDs and file IDs already in the database
 # The code below works with SQL Server; see README for tips on connecting
 # to other database managers.
@@ -67,7 +70,6 @@ if usedatabaseflag == 1:
     import pyodbc
     conn = pyodbc.connect(connstr)
     cursor = conn.cursor()
-    sql = 'EXEC usp_GetCommitteeIDs'
 
     # Execute stored procedure and populate list with committee IDs
     sql = 'EXEC usp_GetCommitteeIDs'
@@ -90,6 +92,11 @@ for datafile in glob.glob(os.path.join(reviewdir, '*.fec')):
 for datafile in glob.glob(os.path.join(savedir, '*.fec')):
     fileidlist.append(datafile.replace(savedir, '')[:6])
 
+# Add IDs for files in processed directory
+
+for datafile in glob.glob(os.path.join(processeddir, '*.fec')):
+   fileidlist.append(datafile.replace(processeddir, '')[:6])
+
 # Sort the fileid list
 fileidlist.sort()
 
@@ -108,6 +115,7 @@ finally:
     pass
 
 # Begin scrape
+print 'Done!\n'
 print 'Initializing FEC scrape...'
 print 'Fetching data for ' + str(len(commidlist)) + ' committees.\n'
 
@@ -135,7 +143,7 @@ filing_numbers.sort()
 # Create another list for file IDs to download
 downloadlist = []
 
-# Compile list of file IDs that have not been dowloaded previously
+# Compile list of file IDs that have not been downloaded previously
 for x in filing_numbers:
     if fileidlist.count(x) == 0:
         downloadlist.append(x)

@@ -44,7 +44,7 @@ reviewdir = maindir + 'Review\\'
 # Database integration flag
 # Set to 1 to integrate with your database.
 # Set to 0 to disable this functionality
-usedatabaseflag = 0
+usedatabaseflag = 1
 
 # Script variables
 delimiter = chr(28)
@@ -674,7 +674,7 @@ try:
                     datarow = datarow.replace(delimiter + "'", delimiter)
                 # Replace '' between two delimiters with just two delimiters
                 datarow = datarow.replace(delimiter + "''" + delimiter, delimiter + delimiter)
-				# Replace all cases of '' with "
+		# Replace all cases of '' with "
                 while "''" in datarow:
                     datarow = datarow.replace("''", '"')
                 # Replace all cases of "" with "
